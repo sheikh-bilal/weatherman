@@ -1,0 +1,6 @@
+Jim, Sales
+Andy, Sales
+Kelly, Customer Service
+John, Quality Assurance
+Michael, Manager
+Oscar, Accounting
