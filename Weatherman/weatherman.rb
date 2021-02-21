@@ -4,7 +4,12 @@ include WeatherReport, WeatherDataParser
 # Getting Input from terminal
 params = WeatherDataParser.getInput(ARGV)
 # Getting data from files and stores in an array of Hahes and return it
-weather_data = WeatherDataParser.get_month_data(params) if params[0] != '-e'
+if params[0] != '-e'
+  if (weather_data = WeatherDataParser.get_month_data(params)).nil?
+    puts 'Given Month Data not Found'
+    exit
+  end
+end
 # Generate Report
 if params[0] == '-a'
   WeatherReport.generate_month_report_a(weather_data)

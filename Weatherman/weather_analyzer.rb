@@ -5,31 +5,24 @@ module WeatherReport
     weather_forcast = []
     months.each do |month|
       params[2] = month
-      weather_data = WeatherDataParser.get_month_data(params)
+      if (weather_data = WeatherDataParser.get_month_data(params)).nil?
+        next
+      end
       weather_forcast_month = WeatherDataParser.getWeatherForcast(weather_data)
       weather_forcast.push(weather_forcast_month)
     end
-    WeatherDataParser.fetchResults(weather_forcast)
-    # puts "Highest #{weather_forcast_month[0]}C on #{weather_forcast_month[1]}"
-    # puts "Lowest #{weather_forcast_month[2]}C on #{weather_forcast_month[3]}"
-    # puts "Humid #{weather_forcast_month[4]}% on #{weather_forcast_month[5]}"
+    WeatherDataParser.fetchresults(weather_forcast)
   end
 
   def generate_month_report_a(data)
-    avg_m = 0
-    avg_l = 0
-    avg_h = 0
+    avg_m = 0; avg_l = 0; avg_h = 0
     for i in 0..data.length - 2
       avg_m += data[i]['Max TemperatureC'].to_i
       avg_l += data[i]['Min TemperatureC'].to_i
       avg_h += data[i][' Mean Humidity'].to_i
     end
-    avg_m /= data.length
-    avg_l /= data.length
-    avg_h /= data.length
-    puts "Highest Average: #{avg_m}C"
-    puts "Lowest Average: #{avg_l}C"
-    puts "Average Humidity: #{avg_h}%"
+    avg_m /= data.length; avg_l /= data.length; avg_h /= data.length
+    puts "Highest Average: #{avg_m}C \nLowest Average: #{avg_l}C\nAverage Humidity: #{avg_h}%"
   end
 
   def generate_month_report_c(data, params)
@@ -61,9 +54,10 @@ module WeatherReport
     end
   end
 end
+
 # Modeule for parsing and returning weather-data
 module WeatherDataParser
-  def fetchResults(data)
+  def fetchresults(data)
     max_t = 0
     low_t = 999
     max_h = 0
@@ -94,7 +88,8 @@ module WeatherDataParser
   def getInput(argv)
     mode = argv[0]
     months_name = {
-      1 => 'Jan', 2 => 'Feb', 3 => 'Mar', 4 => 'Apr', 5 => 'May', 6 => 'Jun', 7 => 'Jul', 8 => 'Aug', 9 => 'Sep', 10 => 'Oct', 11 => 'Nov', 12 => 'Dec'
+      1 => 'Jan', 2 => 'Feb', 3 => 'Mar', 4 => 'Apr', 5 => 'May', 6 => 'Jun',
+      7 => 'Jul', 8 => 'Aug', 9 => 'Sep', 10 => 'Oct', 11 => 'Nov', 12 => 'Dec'
     }
     if mode == '-e'
       year = argv[1]
@@ -113,16 +108,23 @@ module WeatherDataParser
     header = []
     data = []
     count = 0
-    file = File.open("#{params[3]}/#{params[3]}_#{params[1]}_#{params[2]}.txt")
-    file.readlines.map(&:strip).each do |line|
-      if line != ''
-        if count < 1
-          header = line.split(',')
-          count += 1
-        else
-          arr = line.split(',')
-          hash = header.zip(arr).to_h
-          data.push(hash)
+
+    # Error Catch incase some months data not present
+    begin
+      file = File.open("#{params[3]}/#{params[3]}_#{params[1]}_#{params[2]}.txt")
+    rescue Errno::ENOENT
+      return nil
+    else
+      file.readlines.map(&:strip).each do |line|
+        if line != ''
+          if count < 1
+            header = line.split(',')
+            count += 1
+          else
+            arr = line.split(',')
+            hash = header.zip(arr).to_h
+            data.push(hash)
+          end
         end
       end
     end
