@@ -1,22 +1,27 @@
+# frozen_string_literal: true
+
 # Module generating weather reports
 module WeatherReport
   def generate_report_e(params)
     months = %w[Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec]
-    weather_forcast = []
+    weather_forecast = []
     months.each do |month|
       params[2] = month
       if (weather_data = WeatherDataParser.get_month_data(params)).nil?
         next
       end
-      weather_forcast_month = WeatherDataParser.getWeatherForcast(weather_data)
-      weather_forcast.push(weather_forcast_month)
+
+      weather_forecast_month = WeatherDataParser.getWeatherForecast(weather_data)
+      weather_forecast.push(weather_forecast_month)
     end
-    WeatherDataParser.fetchresults(weather_forcast)
+    WeatherDataParser.fetch_results(weather_forecast)
   end
 
   def generate_month_report_a(data)
-    avg_m = 0; avg_l = 0; avg_h = 0
-    for i in 0..data.length - 2
+    avg_m = 0
+    avg_l = 0
+    avg_h = 0
+    (0..data.length - 2).each do |i|
       avg_m += data[i]['Max TemperatureC'].to_i
       avg_l += data[i]['Min TemperatureC'].to_i
       avg_h += data[i][' Mean Humidity'].to_i
@@ -27,7 +32,7 @@ module WeatherReport
 
   def generate_month_report_c(data, params)
     puts "#{params[2]} #{params[1]}"
-    for i in 0..data.length - 2
+    (0..data.length - 2).each do |i|
       date = data[i]['PKT'].split('-').last
       max_t = data[i]['Max TemperatureC'].to_i
       low_t = data[i]['Min TemperatureC'].to_i
@@ -43,7 +48,7 @@ module WeatherReport
   # BONUS SECTION
   def generate_month_report_b(data, params)
     puts "#{params[2]} #{params[1]}"
-    for i in 0..data.length - 2
+    (0..data.length - 2).each do |i|
       date = data[i]['PKT'].split('-').last
       max_t = data[i]['Max TemperatureC'].to_i
       low_t = data[i]['Min TemperatureC'].to_i
@@ -55,9 +60,9 @@ module WeatherReport
   end
 end
 
-# Modeule for parsing and returning weather-data
+# Module for parsing and returning weather-data
 module WeatherDataParser
-  def fetchresults(data)
+  def fetch_results(data)
     max_t = 0
     low_t = 999
     max_h = 0
@@ -85,23 +90,30 @@ module WeatherDataParser
     puts "Humid #{max_h}% on #{max_h_day}"
   end
 
-  def getInput(argv)
+  def get_input(argv)
     mode = argv[0]
     months_name = {
       1 => 'Jan', 2 => 'Feb', 3 => 'Mar', 4 => 'Apr', 5 => 'May', 6 => 'Jun',
       7 => 'Jul', 8 => 'Aug', 9 => 'Sep', 10 => 'Oct', 11 => 'Nov', 12 => 'Dec'
     }
-    if mode == '-e'
+    data = get_input_action(mode, argv)
+    path = argv[2]
+    month = data[1]
+    month = months_name[month.to_i]
+    [mode, data[0], month, path]
+  end
+
+  def get_input_action(mode, argv)
+    case mode
+    when '-e'
       year = argv[1]
-    elsif (mode == '-a') || (mode == '-c') || (mode == '-b')
+    when '-a', '-c', '-b'
       year = argv[1].split('/').first
       month = argv[1].split('/').last
     else
       puts 'Invalid option entered.!!'
     end
-    path = argv[2]
-    month = months_name[month.to_i]
-    [mode, year, month, path]
+    [year, month]
   end
 
   def get_month_data(params)
@@ -109,7 +121,7 @@ module WeatherDataParser
     data = []
     count = 0
 
-    # Error Catch incase some months data not present
+    # Error Catch in-case some months data not present
     begin
       file = File.open("#{params[3]}/#{params[3]}_#{params[1]}_#{params[2]}.txt")
     rescue Errno::ENOENT
@@ -132,11 +144,14 @@ module WeatherDataParser
     data
   end
 
-  def getWeatherForcast(data)
+  def getWeatherForecast(data)
     max_temp = 0
     min_temp = 999
     max_hum = 0
-    for i in 0..data.length - 2
+    max_temp_day = ''
+    min_temp_day = ''
+    max_hum_day = ''
+    (0..data.length - 2).each do |i|
       if data[i]['Max TemperatureC'].to_i > max_temp
         max_temp = data[i]['Max TemperatureC'].to_i
         max_temp_day = if data[i]['PKT'].nil?
@@ -154,13 +169,14 @@ module WeatherDataParser
                        end
       end
       next unless data[i]['Max Humidity'].to_i > max_hum
+
       max_hum = data[i]['Max Humidity'].to_i
       max_hum_day = if data[i]['PKT'].nil?
                       data[i]['PKST']
                     else
                       data[i]['PKT']
                     end
-      end
+    end
     [max_temp, max_temp_day, min_temp, min_temp_day, max_hum, max_hum_day]
   end
 end
