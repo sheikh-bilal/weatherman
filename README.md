@@ -1,12 +1,12 @@
 # Weatherman App
 
-ruby based app which use raw data(files) to analayze weather for specific year
-Modes:
+Ruby based app which use raw data(files) to analayze weather for specific year
+
 **********************************************************
 ruby weatherman.rb -e 2002 /path/to/filesFolder
-Highest: 45C on June 23
-Lowest: 01C on December 22
-Humid: 95% on August 14
+* Highest: 45C on June 23
+* Lowest: 01C on December 22
+* Humid: 95% on August 14
 **********************************************************
 
 **********************************************************
